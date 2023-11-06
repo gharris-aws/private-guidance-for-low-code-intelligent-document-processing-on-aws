@@ -5,9 +5,10 @@ import aws_cdk.aws_s3_notifications as s3n
 import aws_cdk.aws_stepfunctions as sfn
 import aws_cdk.aws_lambda as lambda_
 import aws_cdk.aws_iam as iam
-from aws_cdk import (CfnOutput, RemovalPolicy, Stack, Duration)
+# from aws_cdk import (CfnOutput, RemovalPolicy, Stack, Duration)
+from aws_cdk import (CfnOutput, RemovalPolicy, Stack, Duration, aws_stepfunctions_tasks as sfn_tasks)
 import amazon_textract_idp_cdk_constructs as tcdk
-
+#from src import lambda as llambda
 
 class SimpleSearchPDF(Stack):
 
@@ -36,25 +37,47 @@ class SimpleSearchPDF(Stack):
             self,
             f"{workflow_name}-Decider",
         )
+        searchPDF = lambda_.DockerImageFunction(
+            self,
+            f"{workflow_name}-SearchablePDF",
+            code=lambda_.DockerImageCode.from_image_asset(
+                os.path.join(script_location, '../lambda/searchablePDF')
+            ),
+            memory_size=10240,
+            timeout=Duration.seconds(900),
+            architecture=lambda_.Architecture.X86_64,            
+        )
 
-        # searchPDF = tcdk.SearchablePDF(self,
+        searchPDF_task = sfn_tasks.LambdaInvoke(
+            self,
+            f"{workflow_name}-Task-SearchablePDF",            
+            lambda_function=searchPDF)
+        
+        # searchPDF = llambda.SearchablePDF(self,
         #                                f"{workflow_name}-SearchablePDF",
         #                                lambda_memory_mb=10240,
         #                                lambda_timeout=900)
         
-        searchPDF = lambda_.DockerImageFunction(
-            self,
-            "LambdaStartStepFunctionGeneric",
-            code=lambda_.DockerImageCode.from_image_asset(
-                os.path.join(script_location, '../lambda/searchablePDF/')),
-            memory_size=10240,
-            architecture=lambda_.Architecture.X86_64,
-            timeout=900
-            environment={"STATE_MACHINE_ARN": state_machine.state_machine_arn})
+        # searchPDF = lambda_.DockerImageFunction(
+        #     self,
+        #     "LambdaStartStepFunctionGeneric",
+        #     code=lambda_.DockerImageCode.from_image_asset(
+        #         os.path.join(script_location, '../lambda/searchablePDF/')),
+        #     memory_size=10240,
+        #     architecture=lambda_.Architecture.X86_64,
+        #     timeout=Duration.seconds(900))
 
-        searchPDF.add_to_role_policy(
-            iam.PolicyStatement(actions=['s3:GetObject', 's3:ListBucket', 's3:PutObject'],
-                                resources=['*']))
+        # searchPDF.add_to_role_policy(
+        #     iam.PolicyStatement(actions=['s3:GetObject', 's3:ListBucket', 's3:PutObject'],
+        #                         resources=['*']))
+        
+        # searchPDF = lambda_.Function(
+        #     self,
+        #     f"{workflow_name}-searchPDF",
+        #     handler=main.py,
+        #     code=lambda_.Code.fromAsset(os.path.join(script_location, '../lambda/searchablePDF/'), 'main.py'),
+        #     runtime=Runtime.PYTHON_LATEST
+        #     )
 
         textract_async_task = tcdk.TextractGenericAsyncSfnTask(
             self,
@@ -81,12 +104,12 @@ class SimpleSearchPDF(Stack):
             s3_output_bucket=s3_output_bucket)
 
         async_chain = sfn.Chain.start(textract_async_task).next(
-            textract_async_to_json)
+            textract_async_to_json)#.next(searchPDF)
 
         workflow_chain = sfn.Chain \
             .start(decider_task) \
             .next(async_chain) \
-            .next(searchPDF)
+            .next(searchPDF_task)
 
         # GENERIC
         state_machine = sfn.StateMachine(self,
