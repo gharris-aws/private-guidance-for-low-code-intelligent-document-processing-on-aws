@@ -5,10 +5,8 @@ import aws_cdk.aws_s3_notifications as s3n
 import aws_cdk.aws_stepfunctions as sfn
 import aws_cdk.aws_lambda as lambda_
 import aws_cdk.aws_iam as iam
-# from aws_cdk import (CfnOutput, RemovalPolicy, Stack, Duration)
 from aws_cdk import (CfnOutput, RemovalPolicy, Stack, Duration, aws_stepfunctions_tasks as sfn_tasks)
 import amazon_textract_idp_cdk_constructs as tcdk
-#from src import lambda as llambda
 
 class SimpleSearchPDF(Stack):
 
