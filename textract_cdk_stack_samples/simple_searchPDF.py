@@ -53,32 +53,6 @@ class SimpleSearchPDF(Stack):
             f"{workflow_name}-Task-SearchablePDF",            
             lambda_function=searchPDF)
         
-        # searchPDF = llambda.SearchablePDF(self,
-        #                                f"{workflow_name}-SearchablePDF",
-        #                                lambda_memory_mb=10240,
-        #                                lambda_timeout=900)
-        
-        # searchPDF = lambda_.DockerImageFunction(
-        #     self,
-        #     "LambdaStartStepFunctionGeneric",
-        #     code=lambda_.DockerImageCode.from_image_asset(
-        #         os.path.join(script_location, '../lambda/searchablePDF/')),
-        #     memory_size=10240,
-        #     architecture=lambda_.Architecture.X86_64,
-        #     timeout=Duration.seconds(900))
-
-        # searchPDF.add_to_role_policy(
-        #     iam.PolicyStatement(actions=['s3:GetObject', 's3:ListBucket', 's3:PutObject'],
-        #                         resources=['*']))
-        
-        # searchPDF = lambda_.Function(
-        #     self,
-        #     f"{workflow_name}-searchPDF",
-        #     handler=main.py,
-        #     code=lambda_.Code.fromAsset(os.path.join(script_location, '../lambda/searchablePDF/'), 'main.py'),
-        #     runtime=Runtime.PYTHON_LATEST
-        #     )
-
         textract_async_task = tcdk.TextractGenericAsyncSfnTask(
             self,
             "TextractAsync",

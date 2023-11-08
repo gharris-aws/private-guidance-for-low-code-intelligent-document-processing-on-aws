@@ -91,7 +91,7 @@ def lambda_handler(event, _):
                 font_size = font_size - 1
                 PDF_Width = fitz.get_text_length(text=word.get('text'), fontname="Courier", fontsize=font_size)
             tw.append(pos=(word.get('xmin'), word.get('ymax')), text=word.get('text'), font=font, fontsize=font_size)             
-        tw.write_text(page, render_mode=0, color=(0, 0, 0))
+        tw.write_text(page, render_mode=3, color=(0, 1, 0))
     s3_bucket, s3_key = split_s3_path_to_bucket_and_key(manifest.get('s3Path'))
     outputKey = f"pdf_output/{s3_key.split('/')[-1].split('.')[0]}_searchable.pdf"
     logger.info(f"Saving to {s3_bucket}/{outputKey}")
