@@ -8,6 +8,7 @@ import aws_cdk.aws_iam as iam
 from aws_cdk import (CfnOutput, RemovalPolicy, Stack, Duration, aws_stepfunctions_tasks as sfn_tasks)
 import amazon_textract_idp_cdk_constructs as tcdk
 
+
 class SimpleSearchPDF(Stack):
 
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
@@ -35,6 +36,7 @@ class SimpleSearchPDF(Stack):
             self,
             f"{workflow_name}-Decider",
         )
+        
         searchPDF = lambda_.DockerImageFunction(
             self,
             f"{workflow_name}-SearchablePDF",
@@ -76,7 +78,7 @@ class SimpleSearchPDF(Stack):
             s3_output_bucket=s3_output_bucket)
 
         async_chain = sfn.Chain.start(textract_async_task).next(
-            textract_async_to_json)#.next(searchPDF)
+            textract_async_to_json)
 
         workflow_chain = sfn.Chain \
             .start(decider_task) \
